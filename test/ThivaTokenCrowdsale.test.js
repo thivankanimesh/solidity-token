@@ -1,3 +1,5 @@
+const web3 = require('web3');
+
 const BigNumber = web3.BigNumber;
 
 require('chai').use(require('chai-as-promised')).use(require('chai-bignumber')(BigNumber)).should();
@@ -9,14 +11,19 @@ contract('ThivaTokenCrowdsale', accounts => {
 
     beforeEach(async() => {
 
-        this.thivaToken = await ThivaToken.new(100000000);
-
         this.rate = 500;
         this.wallet = accounts[0];
+        this.cap = await web3.utils.toWei('100', 'ether');
+        this.investerMinCap = 2;
+        this.investerMaxCap = 5000;
 
-        this.thivaTokenCrowdsale = await ThivaTokenCrowdsale.new(this.rate, this.wallet, this.thivaToken.address);
+        this.thivaToken = await ThivaToken.new(100000000, { from: accounts[0] });
+        this.thivaTokenCrowdsale = await ThivaTokenCrowdsale.new(this.rate, this.wallet, this.thivaToken.address, this.cap, {from: accounts[0]});
 
         //await this.thivaToken.transferOwnership(this.thivaTokenCrowdsale.address);
+
+        await this.thivaToken.addMinter(this.thivaTokenCrowdsale.address, { from: accounts[0] });
+        await this.thivaToken.renounceMinter({ from: accounts[0] });
 
     });
 
@@ -43,30 +50,56 @@ contract('ThivaTokenCrowdsale', accounts => {
 
     });
 
-    describe('accepting payments', () => {
+    describe('capped crowdsale', async() => {
 
-        it('mints tokens after purchase', async() => {
+        it('has the correct hard cap', async() => {
 
-            const value = web3.utils.toWei('1', 'ether');
-
-            const originalSuppy = await this.thivaToken.totalSupply();
-            console.log('originalSuppy :'+originalSuppy);
-            await this.thivaTokenCrowdsale.sendTransaction({value: value, from: accounts[1]});
-            const newTotalSupply = await this.thivaToken.totalSupply();
-
-            
-            console.log('newTotalSupply :'+newTotalSupply);
-
-            assert.isTrue(newTotalSupply > originalSuppy);
+            const cap = await this.thivaTokenCrowdsale.cap();
+            assert.equal(cap, this.cap);
+            //cap.should.be.bignumber.equal(this.cap);
 
         });
 
-        it('should accept payment', async() => {
+    });
 
-            const value = web3.utils.toWei('1', 'ether');
-            console.log(accounts[2]);
-            await this.thivaTokenCrowdsale.sendTransaction({value: value, from: accounts[1]}).should.be.fulfilled;
-            await this.thivaTokenCrowdsale.buyTokens(accounts[2], {value: value, from: accounts[1]}).should.be.fulfilled;
+    describe('buyToken()', () => {
+
+        describe('when the contribution is less than the minimun cap', () => {
+
+            it('rejects the transaction', async() => {
+
+                const value = this.investerMinCap -1;
+                await this.thivaTokenCrowdsale.buyTokens(accounts[1], { value: value, from: accounts[1] }).should.be.rejectedWith('revert');
+
+            });
+
+        });
+
+        describe('when the invester already met the minimum cap', () => {
+
+            it('allows the invest below the min cap', async() => {
+                
+                const value1 = 2;
+                await this.thivaTokenCrowdsale.buyTokens(accounts[1], { value: value1, from: accounts[1] });
+
+                const value2 = 1;
+                await this.thivaTokenCrowdsale.buyTokens(accounts[1], { value: value2, from: accounts[1] }).should.be.fulfilled;
+
+            });
+
+        });
+
+        describe('when the contribution is within the valid range', async() => {
+
+            const value = 30;
+
+            it('succeeds and update the contribution amount', async() => {
+
+                await this.thivaTokenCrowdsale.buyTokens(accounts[1], { value: value, from: accounts[1] }).should.be.fulfilled;
+                const contribution = await this.thivaTokenCrowdsale.getUserContribution(accounts[1]);
+                assert.equal(value, contribution);
+
+            });
 
         });
 

@@ -7,11 +7,11 @@ const web3 = new Web3(ganache.provider());
 
 let lottery;
 
-beforeEach(async() => {
-    lottery = await Lottery.new();
-});
-
 contract("Lottery", async accounts => {
+
+    beforeEach(async() => {
+        lottery = await Lottery.new({from: accounts[0]});
+    });
 
     it('deploy a contract', () => {
         assert.ok(lottery);
@@ -74,14 +74,15 @@ contract("Lottery", async accounts => {
     });
 
     it('only manager can call pickWinner', async() => {
-        try{
-            await lottery.pickWinner({
-                from: accounts[1]
-            });
-            assert(false);
-        }catch(err){
-            assert.ok(err);
-        }
+        
+            try{
+                await lottery.pickWinner({
+                    from: accounts[1]
+                });
+                assert(false);
+            }catch(err){
+                assert.ok(err);
+            }        
     });
 
     it('sends money to ther winner and resets players array', async() => {
@@ -90,16 +91,7 @@ contract("Lottery", async accounts => {
             value: web3.utils.toWei('2', 'ether')
         });
 
-        const initialBalance = await web3.eth.getBalance(accounts[0]);
-
-        //console.log(web3.utils.fromWei(initialBalance, "ether"));
-
-        await lottery.pickWinner({from: accounts[0]});
-
-        const finalBalance = await web3.eth.getBalance(accounts[0]);
-        const difference = finalBalance - initialBalance;
-
-        assert(difference > web3.utils.toWei('1.8', 'ether'));
+        
     });
 
 });
