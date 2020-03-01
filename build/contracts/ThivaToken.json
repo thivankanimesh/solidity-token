@@ -1678,12 +1678,12 @@
         }
       },
       "links": {},
-      "address": "0x931145F1016Ed0946B60d62B5fC7053d1FE71c04",
-      "transactionHash": "0xb78b13569fe0ead252239671d7befb4c2f5294a502f21886f32ec4cc09fa95d5"
+      "address": "0x0928bc5065DA48a36E8222aeb0c39f17C17a334a",
+      "transactionHash": "0xf79747c97ef794e73d310ce6ffda1fb3203888765fa5f4da77b5c96d8623c18c"
     }
   },
   "schemaVersion": "3.0.23",
-  "updatedAt": "2020-02-29T13:52:19.746Z",
+  "updatedAt": "2020-03-01T02:06:04.547Z",
   "networkType": "ethereum",
   "devdoc": {
     "methods": {

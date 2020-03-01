@@ -1,6 +1,8 @@
 const web3 = require('web3');
+const { duration, latest, increase, increaseTo } = require('../node_modules/@openzeppelin/test-helpers/src/time.js');
 
 const BigNumber = web3.BigNumber;
+const BN = web3.utils.BN;
 
 require('chai').use(require('chai-as-promised')).use(require('chai-bignumber')(BigNumber)).should();
 
@@ -16,14 +18,19 @@ contract('ThivaTokenCrowdsale', accounts => {
         this.cap = await web3.utils.toWei('100', 'ether');
         this.investerMinCap = 2;
         this.investerMaxCap = 5000;
+        this.openingTime = Number(Number(await latest()) + Number(duration.weeks(1)));
+        this.closingTime = Number(Number(this.openingTime) + Number(duration.weeks(1)));
 
         this.thivaToken = await ThivaToken.new(100000000, { from: accounts[0] });
-        this.thivaTokenCrowdsale = await ThivaTokenCrowdsale.new(this.rate, this.wallet, this.thivaToken.address, this.cap, {from: accounts[0]});
+        this.thivaTokenCrowdsale = await ThivaTokenCrowdsale.new(this.rate, this.wallet, this.thivaToken.address, this.cap, this.openingTime, this.closingTime, {from: accounts[0]});
 
         //await this.thivaToken.transferOwnership(this.thivaTokenCrowdsale.address);
 
         await this.thivaToken.addMinter(this.thivaTokenCrowdsale.address, { from: accounts[0] });
         await this.thivaToken.renounceMinter({ from: accounts[0] });
+
+        // Advance time to crowdsale start
+        await increaseTo(Number(new BN(this.openingTime).add(new BN(1))));
 
     });
 
@@ -100,6 +107,17 @@ contract('ThivaTokenCrowdsale', accounts => {
                 assert.equal(value, contribution);
 
             });
+
+        });
+
+    });
+
+    describe('timedcrowdsale', () => {
+
+        it('is open', async() => {
+
+            const isClosed = await this.thivaTokenCrowdsale.hasClosed();
+            isClosed.should.be.false;
 
         });
 

@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@openzeppelin/contracts": "^2.5.0",
+    "@openzeppelin/test-helpers": "^0.5.4",
     "babel-polyfill": "^6.26.0",
     "babel-register": "^6.26.0",
     "bignumber.js": "^9.0.0",
