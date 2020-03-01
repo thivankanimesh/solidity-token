@@ -5,8 +5,9 @@ import "../node_modules/@openzeppelin/contracts/crowdsale/emission/MintedCrowdsa
 import "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../node_modules/@openzeppelin/contracts/crowdsale/validation/CappedCrowdsale.sol";
 import "../node_modules/@openzeppelin/contracts/crowdsale/validation/TimedCrowdsale.sol";
+import "../node_modules/@openzeppelin/contracts/crowdsale/validation/WhitelistCrowdsale.sol";
 
-contract ThivaTokenCrowdsale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale {
+contract ThivaTokenCrowdsale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale, WhitelistCrowdsale {
 
     uint256 public investorMinCap = 2;
     uint256 public investerMaxCap = 5000;

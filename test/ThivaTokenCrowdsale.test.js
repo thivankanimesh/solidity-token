@@ -26,8 +26,12 @@ contract('ThivaTokenCrowdsale', accounts => {
 
         //await this.thivaToken.transferOwnership(this.thivaTokenCrowdsale.address);
 
+        // Permission
         await this.thivaToken.addMinter(this.thivaTokenCrowdsale.address, { from: accounts[0] });
         await this.thivaToken.renounceMinter({ from: accounts[0] });
+
+        // Whitelisting
+        await this.thivaTokenCrowdsale.addWhitelisted(accounts[1]);
 
         // Advance time to crowdsale start
         await increaseTo(Number(new BN(this.openingTime).add(new BN(1))));
@@ -118,6 +122,17 @@ contract('ThivaTokenCrowdsale', accounts => {
 
             const isClosed = await this.thivaTokenCrowdsale.hasClosed();
             isClosed.should.be.false;
+
+        });
+
+    });
+
+    describe('whitelisted crowdsale', () => {
+
+        it('reject if not whitelisted', async() => {
+
+            const nonWhitelistedContributor = accounts[2];
+            await this.thivaTokenCrowdsale.buyTokens(nonWhitelistedContributor, {from: nonWhitelistedContributor, value: 30}).should.be.rejectedWith('revert');
 
         });
 
