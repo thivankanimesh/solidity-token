@@ -33,6 +33,7 @@ contract('ThivaTokenCrowdsale', accounts => {
 
         // Whitelisting
         await this.thivaTokenCrowdsale.addWhitelisted(accounts[1]);
+        await this.thivaTokenCrowdsale.addWhitelisted(accounts[2]);
 
         // Advance time to crowdsale start
         await increaseTo(Number(new BN(this.openingTime).add(new BN(1))));
@@ -132,7 +133,7 @@ contract('ThivaTokenCrowdsale', accounts => {
 
         it('reject if not whitelisted', async() => {
 
-            const nonWhitelistedContributor = accounts[2];
+            const nonWhitelistedContributor = accounts[3];
             await this.thivaTokenCrowdsale.buyTokens(nonWhitelistedContributor, {from: nonWhitelistedContributor, value: 30}).should.be.rejectedWith('revert');
 
         });
@@ -154,6 +155,32 @@ contract('ThivaTokenCrowdsale', accounts => {
                 await this.thivaTokenCrowdsale.claimRefund(accounts[0]).should.be.rejectedWith('revert');
 
             });
+
+        });
+
+    });
+
+    describe('minted crowdsale', () => {
+
+        it('mints tokens after purchase', async() => {
+
+            const originalTotalSupply = await this.thivaToken.totalSupply();
+            await this.thivaTokenCrowdsale.sendTransaction({ from: accounts[1], value: 20 });
+
+            const newTotalSupply = await this.thivaToken.totalSupply();
+
+            assert.isTrue(newTotalSupply > originalTotalSupply);
+
+        });
+
+    });
+
+    describe('accepting payments', () => {
+
+        it('should accept payments', async() => {
+
+            await this.thivaTokenCrowdsale.sendTransaction({ from: accounts[1], value: 20 }).should.be.fulfilled;
+            await this.thivaTokenCrowdsale.buyTokens(accounts[2], { from: accounts[1], value:200 }).should.be.fulfilled;
 
         });
 
