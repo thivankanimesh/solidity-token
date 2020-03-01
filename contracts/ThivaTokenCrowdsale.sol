@@ -6,15 +6,18 @@ import "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../node_modules/@openzeppelin/contracts/crowdsale/validation/CappedCrowdsale.sol";
 import "../node_modules/@openzeppelin/contracts/crowdsale/validation/TimedCrowdsale.sol";
 import "../node_modules/@openzeppelin/contracts/crowdsale/validation/WhitelistCrowdsale.sol";
+import "../node_modules/@openzeppelin/contracts/crowdsale/distribution/RefundableCrowdsale.sol";
 
-contract ThivaTokenCrowdsale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale, WhitelistCrowdsale {
+contract ThivaTokenCrowdsale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale, WhitelistCrowdsale, RefundableCrowdsale {
 
     uint256 public investorMinCap = 2;
     uint256 public investerMaxCap = 5000;
 
     mapping(address => uint256) public contributors;
 
-    constructor( uint256 rate, address payable wallet, IERC20 token, uint256 _cap, uint256 _openingTime, uint256 _closingTime) Crowdsale(rate, wallet, token) CappedCrowdsale(_cap) TimedCrowdsale(_openingTime, _closingTime) public {
+    constructor( uint256 rate, address payable wallet, IERC20 token, uint256 _cap, uint256 _openingTime, uint256 _closingTime, uint256 goal) Crowdsale(rate, wallet, token) CappedCrowdsale(_cap) TimedCrowdsale(_openingTime, _closingTime) RefundableCrowdsale(goal) public {
+
+        require( goal <= _cap );
 
     }
 

@@ -13,16 +13,17 @@ contract('ThivaTokenCrowdsale', accounts => {
 
     beforeEach(async() => {
 
-        this.rate = 500;
+        this.rate = 100;
         this.wallet = accounts[0];
-        this.cap = await web3.utils.toWei('100', 'ether');
+        this.cap = 1000000;
         this.investerMinCap = 2;
         this.investerMaxCap = 5000;
         this.openingTime = Number(Number(await latest()) + Number(duration.weeks(1)));
         this.closingTime = Number(Number(this.openingTime) + Number(duration.weeks(1)));
+        this.goal = 500000;
 
         this.thivaToken = await ThivaToken.new(100000000, { from: accounts[0] });
-        this.thivaTokenCrowdsale = await ThivaTokenCrowdsale.new(this.rate, this.wallet, this.thivaToken.address, this.cap, this.openingTime, this.closingTime, {from: accounts[0]});
+        this.thivaTokenCrowdsale = await ThivaTokenCrowdsale.new(this.rate, this.wallet, this.thivaToken.address, this.cap, this.openingTime, this.closingTime, this.goal, {from: accounts[0]});
 
         //await this.thivaToken.transferOwnership(this.thivaTokenCrowdsale.address);
 
@@ -133,6 +134,26 @@ contract('ThivaTokenCrowdsale', accounts => {
 
             const nonWhitelistedContributor = accounts[2];
             await this.thivaTokenCrowdsale.buyTokens(nonWhitelistedContributor, {from: nonWhitelistedContributor, value: 30}).should.be.rejectedWith('revert');
+
+        });
+
+    });
+
+    describe('refundable crowdsale', () => {
+
+        beforeEach(async() => {
+
+            await this.thivaTokenCrowdsale.buyTokens(accounts[1], {from: accounts[1], value: 30});
+
+        });
+
+        describe('during crowdsale', () => {
+
+            it('prevent the contributor from claming refund', async() => {
+
+                await this.thivaTokenCrowdsale.claimRefund(accounts[0]).should.be.rejectedWith('revert');
+
+            });
 
         });
 
